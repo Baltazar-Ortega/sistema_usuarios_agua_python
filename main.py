@@ -37,7 +37,7 @@ def mandar_opcion(opc):
 	elif opc == 3:
 		proceso()
 	elif opc == 4:
-		altas()
+		bajas()
 	elif opc == 5:
 		reportes()
 	elif opc == 6:
@@ -244,7 +244,6 @@ def existe_id(id_buscado, objeto):
 
 
 def modificacion_menu():
-	print('\n Entro a modificacion \n')
 	#Se puede modificar info de usuario y de colonia
 	print('\n\n\t\t MENU MODIFICACION \n')
 	print('\n 1. Usuario \n 2. Colonia \n')
@@ -316,7 +315,42 @@ def proceso():
 
 
 def bajas():
-	pass
+	print('\n\n\t\t MENU BAJAS \n')
+	print('\n 1. Usuario \n 2. Colonia \n')
+	opc = int(input('\n\t Opcion: '))
+	if opc == 1:
+		id_buscado = input('\n Introduzca el id del usuario: ')
+		id_encontrado = existe_id(id_buscado, 'usuarios')
+		if id_encontrado:
+			#Este ciclo for es solo para el print
+			i = 1
+			idx = -1
+			for usuario in usuarios[1:]:
+				if usuario['uid'] == id_buscado:
+					print('\n Usuario a borrar. Nombre: {}'.format(usuario['nombre']))
+					idx = i
+					break
+				i += 1
+			del usuarios[idx]
+		else:
+			print('\n El id introducido no existe\n')	
+	elif opc == 2:
+		clave_buscada = input('\n Introduzca la clave la colonia: ')
+		clave_encontrada = existe_id(clave_buscada, 'colonias')
+		if clave_encontrada:
+			#Este ciclo for es solo para el print del nombre
+			i = 1
+			idx = -1
+			for colonia in colonias[1:]:
+				if colonia['clave'] == clave_buscada:
+					print('\n Colonia a borrar. Nombre: {}'.format(colonia['nombre']))
+					idx = i
+					break
+				i += 1
+			del colonias[idx]
+		else:
+			print('\n La clave introducida no existe\n')
+
 
 
 def reportes():
