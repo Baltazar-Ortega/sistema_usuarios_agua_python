@@ -30,15 +30,18 @@ def _menu_principal():
 	
 
 def mandar_opcion(opc):
-	switcher = {
-		1: altas(),
-		2: modificacion(),
-		3: proceso(),
-		4: bajas(),
-		5: reportes(),
-		6: print('Ha salido del programa'),
-	}
-	return switcher.get(opc, 'Opcion invalida')
+	if opc == 1:
+		altas()
+	elif opc == 2:
+		modificacion_menu()
+	elif opc == 3:
+		proceso()
+	elif opc == 4:
+		altas()
+	elif opc == 5:
+		reportes()
+	elif opc == 6:
+		pass
 
 
 def inicializar_variables_desde_archivo():
@@ -224,12 +227,22 @@ def imprimir_en_archivo():
 	os.rename(nombre_temporal, TABLA_TARIFAS)
 
 
-def modificacion():
-	pass
+def modificacion_menu():
+	print('\n Entro a modificacion \n')
+	#Se puede modificar info de usuario y de colonia
+	print('\n\n\t\t MENU MODIFICACION \n')
+	print('\n 1. Usuario \n 2. Colonia \n')
+	opc = int(input('\n\t Opcion: '))
+	if opc == 1:
+		id_buscado = int(obtener_campo_usuario('uid'))
+	elif opc == 2:
+		pass
+	
+
 
 
 def proceso():
-	pass
+	print('\n Entro a proceso \n')
 
 
 def bajas():
@@ -247,7 +260,10 @@ if __name__ == '__main__':
 		_menu_principal()
 		command = int(input('\n\n\t Opcion: '))
 		if command == 6:
+			print('\n Ha salida del programa \n') 
 			break
+		if command < 1 or command > 6:
+			continue
 		mandar_opcion(command)
 		#print(usuarios[1].get('nombre'))
 	imprimir_en_archivo()
