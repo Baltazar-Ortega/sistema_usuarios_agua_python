@@ -227,6 +227,22 @@ def imprimir_en_archivo():
 	os.rename(nombre_temporal, TABLA_TARIFAS)
 
 
+def existe_id(id_buscado, objeto):
+	global usuarios
+	encontrado = False
+	if objeto == 'usuarios':
+		for usuario in usuarios:
+			if usuario['uid'] == id_buscado:
+				encontrado = True
+				#print('\n el id si existe \n')
+	elif objeto == 'colonias':
+		for colonia in colonias:
+			if colonia['clave'] == id_buscado:
+				encontrado = True
+				#print('\n La clave si existe \n')
+	return encontrado
+
+
 def modificacion_menu():
 	print('\n Entro a modificacion \n')
 	#Se puede modificar info de usuario y de colonia
@@ -234,11 +250,65 @@ def modificacion_menu():
 	print('\n 1. Usuario \n 2. Colonia \n')
 	opc = int(input('\n\t Opcion: '))
 	if opc == 1:
-		id_buscado = int(obtener_campo_usuario('uid'))
+		id_buscado = input('\n Introduzca el id del usuario: ')
+		id_encontrado = existe_id(id_buscado, 'usuarios')
+		if id_encontrado:
+			#Este ciclo for es solo para el print
+			for usuario in usuarios[1:]:
+				if usuario['uid'] == id_buscado:
+					print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
+					modificacion_submenus('usuario', id_buscado)
+					break
+		else:
+			print('\n El id introducido no existe\n')	
 	elif opc == 2:
-		pass
+		clave_buscada = input('\n Introduzca la clave la colonia: ')
+		clave_encontrada = existe_id(clave_buscada, 'colonias')
+		if clave_encontrada:
+			#Este ciclo for es solo para el print
+			for colonia in colonias[1:]:
+				if colonia['clave'] == clave_buscada:
+					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
+					modificacion_submenus('colonia', clave_buscada)
+					break
+		else:
+			print('\n La clave introducida no existe\n')
 	
 
+def modificacion_submenus(objeto, id_buscado):
+	opc = 0
+	if objeto == 'usuario':
+		print('\n\n\t\t MENU MODIFICACION USUARIO \n 1. Nombre \n 2. Tipo \n 3. id \n')
+		opc = int(input('\n\tOpcion: '))
+		for usuario in usuarios[1:]:
+			if usuario['uid'] == id_buscado:
+				if opc == 1:
+					nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+					usuario['nombre'] = nuevo_nombre
+					print('\n Nombre modificado \n')
+				elif opc == 2:
+					nuevo_tipo = input('\n Introduzca el nuevo tipo: ')
+					usuario['tipo'] = nuevo_tipo
+					print('\n tipo modificado \n')
+				elif opc == 3:
+					nuevo_id = input('\n Introduzca el nuevo id: ')
+					usuario['uid'] = nuevo_id
+					print('\n id modificado \n')
+				break
+	elif objeto == 'colonia':
+		print('\n\n\t\t MENU MODIFICACION COLONIA \n 1. Nombre \n 2. clave \n')
+		opc = int(input('\n\tOpcion: '))
+		for colonia in colonias[1:]:
+			if colonia['clave'] == id_buscado:
+				if opc == 1:
+					nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+					colonia['nombre'] = nuevo_nombre
+					print('\n Nombre modificado \n')
+				elif opc == 2:
+					nueva_clave = input('\n Introduzca la nueva clave: ')
+					colonia['clave'] = nueva_clave
+					print('\n clave modificada \n')
+				break
 
 
 def proceso():
