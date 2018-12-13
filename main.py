@@ -41,7 +41,7 @@ def mandar_opcion(opc):
 	return switcher.get(opc, 'Opcion invalida')
 
 
-def _inicializar_usuarios_desde_archivo():
+def inicializar_variables_desde_archivo():
 	#Leer lo del archivo y meterlo en la variable usuarios
 	try:
 		with open(TABLA_USUARIO, mode='r') as f:
@@ -49,20 +49,16 @@ def _inicializar_usuarios_desde_archivo():
 			for row in reader:
 				usuarios.append(row)
 	except FileNotFoundError as error:
-		print('\n Entre al error \n')
-
-
-def _inicializar_colonias_desde_archivo():
+		print('\n Entre al errorusuarios\n')
+	#Leer lo del archivo y meterlo en la variable colonias
 	try:
 		with open(TABLA_COLONIA, mode='r') as f:
 			reader = csv.DictReader(f, fieldnames=ESQUEMA_COLONIA)
 			for row in reader:
 				colonias.append(row)
 	except FileNotFoundError as error:
-		print('\n Entre al error \n')
-
-
-def _inicializar_tarifas_desde_archivo():
+		print('\n Entre al error colonias \n')
+	#Leer lo de tarifas y meterlo en la variable tarifas
 	try:
 		with open(TABLA_TARIFAS, mode='r') as f:
 			reader = csv.reader(f)
@@ -246,9 +242,7 @@ def reportes():
 
 
 if __name__ == '__main__':
-	_inicializar_usuarios_desde_archivo()
-	_inicializar_colonias_desde_archivo()
-	_inicializar_tarifas_desde_archivo()
+	inicializar_variables_desde_archivo()
 	while True:
 		_menu_principal()
 		command = int(input('\n\n\t Opcion: '))
