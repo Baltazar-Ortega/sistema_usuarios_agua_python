@@ -11,7 +11,8 @@ ESQUEMA_TARIFAS = ['porcentaje extra']
 usuarios = []
 colonias = []
 tarifas = []
-control_altas_tarifas = 0
+control_altas = 0
+nombre_colonia = None
 
 
 def _menu_principal():
@@ -73,18 +74,46 @@ def inicializar_variables_desde_archivo():
 
 
 def altas():
-	global control_altas_tarifas
+	global control_altas
 	mas_usuarios = 1
 	mas_colonias = 1
-	if not os.path.isfile('.tarifas.csv') and control_altas_tarifas == 0:
+	if not os.path.isfile('.tarifas.csv') and control_altas == 0:
 		print('\nEstableciendo tarifas\n')
 		establecer_tarifas()
-		control_altas_tarifas = 1
+	if not os.path.isfile('.colonias.csv') and control_altas == 0:
+		print('\n\nEstableciendo colonias')
+		while mas_colonias == 1:
+			info_correcta = 2
+			while info_correcta == 2:
+				nueva_colonia = crear_colonia()
+				info_correcta = int(input('\n La informacion es correcta [1-Si / 2-No]: '))
+				if info_correcta == 1:
+					break
+			colonias.append(nueva_colonia)
+			mas_colonias = int(input('\n\t¿Desea introducir mas colonias? [1-Si / 2- No]: '))
+			if mas_colonias == 2:
+				break
+	if not os.path.isfile('.usuarios.csv') and control_altas == 0:
+		print('\n\nEstableciendo usuarios')
+		while mas_usuarios == 1:
+			info_correcta = 2
+			while info_correcta == 2:
+				nuevo_usuario = crear_usuario()
+				info_correcta = int(input('\n La informacion es correcta [1-Si / 2-No]: '))
+				if info_correcta == 1:
+					break
+			usuarios.append(nuevo_usuario)
+			mas_usuarios = int(input('\n\t¿Desea introducir mas usuarios? [1-Si / 2- No]: '))
+			if mas_usuarios == 2:
+				break
+		control_altas = 1
 	while True:
 		print('\n\n 1. Nuevo usuario \n 2. Nueva colonia \n')
 		opc = int(input('\n Opcion: '))
 		if opc == 2 or opc == 1:
 			break
+	mas_usuarios = 1
+	mas_colonias = 1
 	if opc == 1:
 		while mas_usuarios == 1:
 			info_correcta = 2
@@ -131,37 +160,67 @@ def crear_usuario():
 		'uid': int(obtener_campo_usuario('uid')),
 		'tipo': int(obtener_campo_usuario('tipo')),
 		'nombre': obtener_campo_usuario('nombre'),
+		'clave de colonia': int(obtener_campo_usuario('clave_desde_usuario')),
+		'nombre de colonia': obtener_campo_usuario('nombre_desde_usuario'),
+		'direccion': obtener_campo_usuario('direccion'),
+		'consumo': obtener_campo_usuario('consumo'),
+		'pago': obtener_campo_usuario('pago'),
+		'tarifa': obtener_campo_usuario('tarifa'),
 	}
 	return usuario
 
 
 def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? '):
+	global nombre_colonia
 	campo = None
+	campo_bool = False
 	while not campo:
 		id_repetido = False
-		campo = input(mensaje.format(nombre_campo))
-		campo_bool = campo.isdigit()
+		id_encontrado = False
+		if nombre_campo is not 'nombre_desde_usuario':
+			campo = input(mensaje.format(nombre_campo))
+			campo_bool = campo.isdigit()
 		if campo_bool and nombre_campo == 'nombre':
 			campo = None
 			continue
-		if campo_bool == False and nombre_campo == 'uid':
+		# if campo_bool == False and nombre_campo == 'uid':
+		# 	campo = None
+		# 	continue
+		# if campo_bool == False and nombre_campo == 'tipo':
+		# 	campo = None
+		# 	continue
+		#Igual con pago y tarifa
+		if campo_bool == False and (nombre_campo == 'consumo' or nombre_campo == 'pago' or nombre_campo == 'uid' or nombre_campo == 'tipo' or nombre_campo == 'tarifa'):
 			campo = None
 			continue
-		if campo_bool == False and nombre_campo == 'tipo':
-			campo = None
-			continue
+
 		if nombre_campo == 'tipo':
 			if int(campo) > 8 or int(campo) < 1:
 				campo = None
 				continue
 		if nombre_campo == 'uid':
 			for usuario in usuarios:
-				if usuario['uid'] == campo:
+				if usuario['uid'] == int(campo):
 					print('\n id repetido \n')
 					campo = None
 					id_repetido = True
 			if id_repetido:
 				continue
+		if nombre_campo == 'clave_desde_usuario':
+			for colonia in colonias:
+				#print(type(colonia['clave']))
+				#print(type(int(campo)))
+				if colonia['clave'] == int(campo):
+					id_encontrado = True
+					nombre_colonia = colonia['nombre']
+					print('colonia encontrada: {}'.format(nombre_colonia))
+			if not id_encontrado:
+				print('\n No existe esa clave de colonia\n')
+				campo = None
+				continue
+		if nombre_campo == 'nombre_desde_usuario':
+			campo = nombre_colonia
+		#falta validar que la tarifa si esté
 		return campo
 
 
@@ -179,7 +238,7 @@ def obtener_campo_colonia(nombre_campo, mensaje='\n¿Cual es el {} de la colonia
 			continue
 		if nombre_campo == 'clave':
 			for colonia in colonias:
-				if colonia['clave'] == campo:
+				if colonia['clave'] == int(campo):
 					print('\n Clave repetida\n')
 					campo = None
 					clave_repetida = True
@@ -188,43 +247,7 @@ def obtener_campo_colonia(nombre_campo, mensaje='\n¿Cual es el {} de la colonia
 	return campo
 
 
-def imprimir_en_archivo():
-	#imprimir colonias a disco
-	global colonias
-	existe_archivo = os.path.isfile('.colonias.csv')
-	nombre_temporal = '{}.tmp'.format(TABLA_COLONIA)
-	with open(nombre_temporal, mode='w', newline='') as f:
-		writer = csv.DictWriter(f, fieldnames=ESQUEMA_COLONIA)
-		if not existe_archivo:
-			writer.writeheader()
-			open('.colonias.csv', 'w+', newline='')
-		writer.writerows(colonias)
-		os.remove(TABLA_COLONIA)
-	os.rename(nombre_temporal, TABLA_COLONIA)
-	#imprimir usuarios
-	global usuarios
-	existe_archivo = os.path.isfile('.usuarios.csv')
-	nombre_temporal = '{}.tmp'.format(TABLA_USUARIO)
-	with open(nombre_temporal, mode='w', newline='') as f:
-		writer = csv.DictWriter(f, fieldnames=ESQUEMA_USUARIO)
-		if not existe_archivo:
-			writer.writeheader()
-			open('.usuarios.csv', 'w+', newline='')
-		writer.writerows(usuarios)
-		os.remove(TABLA_USUARIO)
-	os.rename(nombre_temporal, TABLA_USUARIO)
-	#imprimir tarifas a disco
-	existe_archivo = os.path.isfile('.tarifas.csv')
-	nombre_temporal = '{}.tmp'.format(TABLA_TARIFAS)
-	with open(nombre_temporal, mode='w', newline='') as f:
-		writer = csv.writer(f)
-		if not existe_archivo:
-			writer.writerow(ESQUEMA_TARIFAS)
-			open('.tarifas.csv', 'w+')
-		for tarifa in tarifas:
-			writer.writerow(tarifa)
-		os.remove(TABLA_TARIFAS)
-	os.rename(nombre_temporal, TABLA_TARIFAS)
+
 
 
 def existe_id(id_buscado, objeto):
@@ -346,9 +369,73 @@ def bajas():
 			print('\n La clave introducida no existe\n')
 
 
+def pagos_realizados():
+	global usuarios
+	suma_totales = 0
+	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	with open(nombre_reporte_generado, mode='w') as f:
+		print('\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
+		f.write('\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
+		print('\n\t Id  Nombre \t Colonia   Pago')
+		f.write('\n\t Id  Nombre \t Colonia   Pago')
+		
+		#No ayuda el usuarios[1:] si es la primera vez que se abre el programa (sin archivos hechos)
+		for usuario in usuarios[1:]:
+			if int(usuario['pago']) == int(usuario['consumo']) or int(usuario['pago']) > int(usuario['consumo']):
+				print('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
+				f.write('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
+				suma_totales += int(usuario['pago'])
+		print('\n\n Total general: {}'.format(suma_totales))
+		f.write('\n\n\n Total general: {}'.format(suma_totales))
+
+
+
+def imprimir_en_archivo():
+	#imprimir colonias a disco
+	global colonias
+	existe_archivo = os.path.isfile('.colonias.csv')
+	nombre_temporal = '{}.tmp'.format(TABLA_COLONIA)
+	with open(nombre_temporal, mode='w', newline='') as f:
+		writer = csv.DictWriter(f, fieldnames=ESQUEMA_COLONIA)
+		if not existe_archivo:
+			writer.writeheader()
+			open('.colonias.csv', 'w+', newline='')
+		writer.writerows(colonias)
+		os.remove(TABLA_COLONIA)
+	os.rename(nombre_temporal, TABLA_COLONIA)
+	#imprimir usuarios
+	global usuarios
+	existe_archivo = os.path.isfile('.usuarios.csv')
+	nombre_temporal = '{}.tmp'.format(TABLA_USUARIO)
+	with open(nombre_temporal, mode='w', newline='') as f:
+		writer = csv.DictWriter(f, fieldnames=ESQUEMA_USUARIO)
+		if not existe_archivo:
+			writer.writeheader()
+			open('.usuarios.csv', 'w+', newline='')
+		writer.writerows(usuarios)
+		os.remove(TABLA_USUARIO)
+	os.rename(nombre_temporal, TABLA_USUARIO)
+	#imprimir tarifas a disco
+	existe_archivo = os.path.isfile('.tarifas.csv')
+	nombre_temporal = '{}.tmp'.format(TABLA_TARIFAS)
+	with open(nombre_temporal, mode='w', newline='') as f:
+		writer = csv.writer(f)
+		if not existe_archivo:
+			writer.writerow(ESQUEMA_TARIFAS)
+			open('.tarifas.csv', 'w+')
+		for tarifa in tarifas:
+			writer.writerow(tarifa)
+		os.remove(TABLA_TARIFAS)
+	os.rename(nombre_temporal, TABLA_TARIFAS)
+
 
 def reportes():
-	pass
+	print('\n\n\t\t MENU REPORTES \n')
+	print('\n 1. Pagos realizados \n 2. Pagos no realizados \n 3. Facturacion \n')
+	opc = int(input('\n\t Opcion: '))
+	if opc == 1:
+		pagos_realizados()
+
 
 
 
