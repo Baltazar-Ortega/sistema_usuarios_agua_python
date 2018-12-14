@@ -252,11 +252,11 @@ def modificacion_menu():
 		id_buscado = input('\n Introduzca el id del usuario: ')
 		id_encontrado = existe_id(id_buscado, 'usuarios')
 		if id_encontrado:
-			#Este ciclo for es solo para el print
+			#Este ciclo para encontrar el usuario, y luego se manda
 			for usuario in usuarios[1:]:
 				if usuario['uid'] == id_buscado:
 					print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
-					modificacion_submenus('usuario', id_buscado)
+					modificacion_submenus('usuario', usuario)
 					break
 		else:
 			print('\n El id introducido no existe\n')	
@@ -268,46 +268,40 @@ def modificacion_menu():
 			for colonia in colonias[1:]:
 				if colonia['clave'] == clave_buscada:
 					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
-					modificacion_submenus('colonia', clave_buscada)
+					modificacion_submenus('colonia', colonia)
 					break
 		else:
 			print('\n La clave introducida no existe\n')
 	
 
-def modificacion_submenus(objeto, id_buscado):
+def modificacion_submenus(objeto_tipo, obj_encontrado):
 	opc = 0
-	if objeto == 'usuario':
+	if objeto_tipo == 'usuario':
 		print('\n\n\t\t MENU MODIFICACION USUARIO \n 1. Nombre \n 2. Tipo \n 3. id \n')
 		opc = int(input('\n\tOpcion: '))
-		for usuario in usuarios[1:]:
-			if usuario['uid'] == id_buscado:
-				if opc == 1:
-					nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
-					usuario['nombre'] = nuevo_nombre
-					print('\n Nombre modificado \n')
-				elif opc == 2:
-					nuevo_tipo = input('\n Introduzca el nuevo tipo: ')
-					usuario['tipo'] = nuevo_tipo
-					print('\n tipo modificado \n')
-				elif opc == 3:
-					nuevo_id = input('\n Introduzca el nuevo id: ')
-					usuario['uid'] = nuevo_id
-					print('\n id modificado \n')
-				break
-	elif objeto == 'colonia':
+		if opc == 1:
+			nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+			obj_encontrado['nombre'] = nuevo_nombre
+			print('\n Nombre modificado \n')
+		elif opc == 2:
+			nuevo_tipo = input('\n Introduzca el nuevo tipo: ')
+			obj_encontrado['tipo'] = nuevo_tipo
+			print('\n tipo modificado \n')
+		elif opc == 3:
+			nuevo_id = input('\n Introduzca el nuevo id: ')
+			obj_encontrado['uid'] = nuevo_id
+			print('\n id modificado \n')
+	elif objeto_tipo == 'colonia':
 		print('\n\n\t\t MENU MODIFICACION COLONIA \n 1. Nombre \n 2. clave \n')
-		opc = int(input('\n\tOpcion: '))
-		for colonia in colonias[1:]:
-			if colonia['clave'] == id_buscado:
-				if opc == 1:
-					nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
-					colonia['nombre'] = nuevo_nombre
-					print('\n Nombre modificado \n')
-				elif opc == 2:
-					nueva_clave = input('\n Introduzca la nueva clave: ')
-					colonia['clave'] = nueva_clave
-					print('\n clave modificada \n')
-				break
+		opc = int(input('\n\tOpcion: '))	
+		if opc == 1:
+			nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+			obj_encontrado['nombre'] = nuevo_nombre
+			print('\n Nombre modificado \n')
+		elif opc == 2:
+			nueva_clave = input('\n Introduzca la nueva clave: ')
+			obj_encontrado['clave'] = nueva_clave
+			print('\n clave modificada \n')
 
 
 def proceso():
