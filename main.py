@@ -5,7 +5,7 @@ TABLA_USUARIO = '.usuarios.csv'
 TABLA_COLONIA = '.colonias.csv'
 TABLA_TARIFAS = '.tarifas.csv'
 ESQUEMA_USUARIO =['uid', 'tipo', 'nombre', 'clave de colonia',
-'nombre de colonia', 'direccion', 'consumo', 'pago', 'tarifa']
+'nombre de colonia', 'direccion', 'consumo', 'pago']
 ESQUEMA_COLONIA = ['clave', 'nombre']
 ESQUEMA_TARIFAS = ['porcentaje extra']
 usuarios = []
@@ -165,13 +165,13 @@ def crear_usuario():
 		'direccion': obtener_campo_usuario('direccion'),
 		'consumo': obtener_campo_usuario('consumo'),
 		'pago': obtener_campo_usuario('pago'),
-		'tarifa': obtener_campo_usuario('tarifa'),
 	}
 	return usuario
 
 
 def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? '):
 	global nombre_colonia
+	global colonias
 	campo = None
 	campo_bool = False
 	while not campo:
@@ -198,9 +198,13 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 			if int(campo) > 8 or int(campo) < 1:
 				campo = None
 				continue
+		if nombre_campo == 'tarifa':
+			if int(campo) > 8 or int(campo) < 1:
+				campo = None
+				continue
 		if nombre_campo == 'uid':
 			for usuario in usuarios:
-				if usuario['uid'] == int(campo):
+				if usuario['uid'] == campo:
 					print('\n id repetido \n')
 					campo = None
 					id_repetido = True
@@ -210,7 +214,7 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 			for colonia in colonias:
 				#print(type(colonia['clave']))
 				#print(type(int(campo)))
-				if colonia['clave'] == int(campo):
+				if colonia['clave'] == campo:
 					id_encontrado = True
 					nombre_colonia = colonia['nombre']
 					print('colonia encontrada: {}'.format(nombre_colonia))
@@ -369,19 +373,59 @@ def bajas():
 			print('\n La clave introducida no existe\n')
 
 
+def pagos_no_realizados():
+	global usuarios
+	global tarifas
+	suma_totales = 0
+	total_debio_pagar = 0
+	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	with open(nombre_reporte_generado, mode='w') as f:
+		print('\n\n\t\t REPORTE DE PAGOS NO REALIZADOS \n\n')
+		f.write('\n\t\t REPORTE DE PAGOS NO REALIZADOS \n\n')
+		print('\n\t Id  Nombre \t Colonia   Pago realizado   Total a pagar')
+		f.write('\n\t Id  Nombre \t Colonia   Pago realizado   Total a pagar')
+		
+		#No ayuda el usuarios[1:] si es la primera vez que se abre el programa (sin archivos hechos)
+		for usuario in usuarios[1:]:
+			#Agarro el index
+			idx_tipo = int(usuario['tipo'])
+			#Agarro la lista (el row, por que asi estan acomodados)
+			lista_tarifa = tarifas[idx_tipo]
+			#Agarro la celda 0, donde esta el valor
+			valor_tarifa = lista_tarifa[0]
+			total_usuario = int(usuario['consumo']) * float(valor_tarifa)
+			if int(usuario['pago']) < total_usuario:
+				print('\n\t {} | {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
+				f.write('\n\t {} | {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
+				suma_totales += int(usuario['pago'])
+				total_debio_pagar += total_usuario 
+		print('\n\n Total pagos realizados: {}'.format(suma_totales))
+		print('\n\n Total que se debio pagar: {}'.format(total_debio_pagar))
+		f.write('\n\n\n Total general: {}'.format(suma_totales))
+		f.write('\n\n Total que se debio pagar: {}'.format(total_debio_pagar))
+
+
 def pagos_realizados():
 	global usuarios
+	global tarifas
 	suma_totales = 0
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
 	with open(nombre_reporte_generado, mode='w') as f:
-		print('\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
-		f.write('\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
+		print('\n\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
+		f.write('\n\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
 		print('\n\t Id  Nombre \t Colonia   Pago')
 		f.write('\n\t Id  Nombre \t Colonia   Pago')
 		
 		#No ayuda el usuarios[1:] si es la primera vez que se abre el programa (sin archivos hechos)
 		for usuario in usuarios[1:]:
-			if int(usuario['pago']) == int(usuario['consumo']) or int(usuario['pago']) > int(usuario['consumo']):
+			#Agarro el index
+			idx_tipo = int(usuario['tipo'])
+			#Agarro la lista (el row, por que asi estan acomodados)
+			lista_tarifa = tarifas[idx_tipo]
+			#Agarro la celda 0, donde esta el valor
+			valor_tarifa = lista_tarifa[0]
+			total_usuario = int(usuario['consumo']) * float(valor_tarifa)
+			if int(usuario['pago']) == total_usuario or (int(usuario['pago']) > total_usuario):
 				print('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
 				f.write('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
 				suma_totales += int(usuario['pago'])
@@ -435,6 +479,8 @@ def reportes():
 	opc = int(input('\n\t Opcion: '))
 	if opc == 1:
 		pagos_realizados()
+	elif opc == 2:
+		pagos_no_realizados()
 
 
 
