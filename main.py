@@ -170,6 +170,7 @@ def crear_usuario():
 
 
 def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? '):
+	#recuerda que tienes la funcion existe_id
 	global nombre_colonia
 	global colonias
 	campo = None
@@ -183,13 +184,6 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 		if campo_bool and nombre_campo == 'nombre':
 			campo = None
 			continue
-		# if campo_bool == False and nombre_campo == 'uid':
-		# 	campo = None
-		# 	continue
-		# if campo_bool == False and nombre_campo == 'tipo':
-		# 	campo = None
-		# 	continue
-		#Igual con pago y tarifa
 		if campo_bool == False and (nombre_campo == 'consumo' or nombre_campo == 'pago' or nombre_campo == 'uid' or nombre_campo == 'tipo' or nombre_campo == 'tarifa'):
 			campo = None
 			continue
@@ -214,7 +208,7 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 			for colonia in colonias:
 				#print(type(colonia['clave']))
 				#print(type(int(campo)))
-				if colonia['clave'] == campo:
+				if colonia['clave'] == int(campo):
 					id_encontrado = True
 					nombre_colonia = colonia['nombre']
 					print('colonia encontrada: {}'.format(nombre_colonia))
@@ -291,7 +285,7 @@ def modificacion_menu():
 		clave_buscada = input('\n Introduzca la clave la colonia: ')
 		clave_encontrada = existe_id(clave_buscada, 'colonias')
 		if clave_encontrada:
-			#Este ciclo for es solo para el print
+			#Este ciclo para encontrar la colonia, y luego se manda
 			for colonia in colonias[1:]:
 				if colonia['clave'] == clave_buscada:
 					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
@@ -302,9 +296,11 @@ def modificacion_menu():
 	
 
 def modificacion_submenus(objeto_tipo, obj_encontrado):
+	#FALTAN Validaciones
+	#Recuerda que tienes una funcion llamada existe_id
 	opc = 0
 	if objeto_tipo == 'usuario':
-		print('\n\n\t\t MENU MODIFICACION USUARIO \n 1. Nombre \n 2. Tipo \n 3. id \n')
+		print('\n\n\t\t MENU MODIFICACION USUARIO \n 1. Nombre \n 2. Tipo \n 3. id \n 4. Colonia \n 5.Direccion \n 6. Consumo \n 7. Pago')
 		opc = int(input('\n\tOpcion: '))
 		if opc == 1:
 			nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
@@ -318,6 +314,39 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 			nuevo_id = input('\n Introduzca el nuevo id: ')
 			obj_encontrado['uid'] = nuevo_id
 			print('\n id modificado \n')
+		elif opc == 4:
+			#No está funcionando la validacion
+			encontrado = False
+			id_colonia_actual = obj_encontrado['clave de colonia']
+			while encontrado == False:
+				ctr = 0
+				nueva_colonia_clave = input('\n Introduzca la clave de la nueva colonia: ')			#nueva: 103  actual: 101  for:101
+				for colonia in colonias[1:]:
+					nueva_colonia_nombre = colonia['nombre']                             
+					if colonia['clave'] == nueva_colonia_clave:
+						obj_encontrado['clave de colonia'] = nueva_colonia_clave
+						obj_encontrado['nombre de colonia'] = nueva_colonia_nombre
+						encontrado = True
+						print('\n Colonia modificada \n')
+						break
+					if colonia['clave'] == nueva_colonia_clave:
+						ctr += 1
+				if encontrado == False and ctr == 0:
+					print('\n No hay colonia con esa clave \n')
+				if encontrado == False and ctr == 1:
+					print('\n Error. Introdujo la clave actual \n')
+		elif opc == 5:
+			nueva_direccion = input('\n Introduzca la nueva direccion: ')
+			obj_encontrado['direccion'] = nueva_direccion
+			print('\n Direccion modificada \n')
+		elif opc == 6:
+			nuevo_consumo = input('\n Introduzca el nuevo consumo: ')
+			obj_encontrado['consumo'] = nuevo_consumo
+			print('\n Consumo modificado \n')
+		elif opc == 7:
+			nuevo_pago = input('\n Introduzca el pago: ')
+			obj_encontrado['pago'] = nuevo_pago
+			print('\n Pago modificado \n')
 	elif objeto_tipo == 'colonia':
 		print('\n\n\t\t MENU MODIFICACION COLONIA \n 1. Nombre \n 2. clave \n')
 		opc = int(input('\n\tOpcion: '))	
