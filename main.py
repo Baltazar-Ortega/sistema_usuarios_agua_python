@@ -139,8 +139,18 @@ def altas():
 
 def establecer_tarifas():
 	global tarifas
+	validar = False
 	for i in range(8):
-		tarifas.append(input('Tarifa {}: '.format(i+1)))
+		validar = False
+		while validar == False:
+			tar = input('Tarifa {}: '.format(i+1))
+			campo_bool = tar.isdigit()
+			#No es numero
+			if campo_bool == False:
+				continue
+			else:
+				validar = True
+				tarifas.append(tar)
 
 
 def crear_colonia():
@@ -177,19 +187,18 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 		if nombre_campo is not 'nombre_desde_usuario':
 			campo = input(mensaje.format(nombre_campo))
 			campo_bool = campo.isdigit()
+		if campo == '' and nombre_campo == 'nombre':
+			campo = None
+			continue
 		if campo_bool and nombre_campo == 'nombre':
 			campo = None
 			continue
 		if campo_bool == False and (nombre_campo == 'consumo' or nombre_campo == 'pago' or nombre_campo == 'uid' or nombre_campo == 'tipo' or nombre_campo == 'tarifa'):
 			campo = None
 			continue
-
 		if nombre_campo == 'tipo':
 			if int(campo) > 8 or int(campo) < 1:
-				campo = None
-				continue
-		if nombre_campo == 'tarifa':
-			if int(campo) > 8 or int(campo) < 1:
+				print('\n Numero entre 1 y 8\n')
 				campo = None
 				continue
 		if nombre_campo == 'uid':
@@ -206,6 +215,9 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 			# if id_repetido:
 			# 	continue
 		if nombre_campo == 'clave_desde_usuario':
+			if campo == '':
+				campo = None
+				continue
 			for colonia in colonias:
 				#Necesito el ciclo para imprimir el nombre
 				if not os.path.isfile('.usuarios.csv'):
@@ -227,15 +239,12 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 		return campo
 
 
-def obtener_campo_colonia(nombre_campo, mensaje='\n¿Cual es el {} de la colonia? '):
+def obtener_campo_colonia(nombre_campo, mensaje='\n {} de la colonia: '):
 	campo = None
 	while not campo:
 		clave_repetida = False
 		campo = input(mensaje.format(nombre_campo))
 		campo_bool = campo.isdigit()
-		if campo_bool and nombre_campo == 'nombre':
-			campo = None
-			continue
 		if campo_bool == False and nombre_campo == 'clave':
 			campo = None
 			continue
@@ -319,19 +328,54 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 		print('\n\n\t\t MENU MODIFICACION USUARIO \n 1. Nombre \n 2. Tipo \n 3. id \n 4. Colonia \n 5.Direccion \n 6. Consumo \n 7. Pago')
 		opc = int(input('\n\tOpcion: '))
 		if opc == 1:
-			nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+			while True:
+				nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+				campo_bool = nuevo_nombre.isdigit()
+				if campo_bool:
+					continue
+				if nuevo_nombre is not '':
+					break;
 			obj_encontrado['nombre'] = nuevo_nombre
 			print('\n Nombre modificado \n')
 		elif opc == 2:
-			nuevo_tipo = input('\n Introduzca el nuevo tipo: ')
+			while True:
+				nuevo_tipo = input('\n Introduzca el nuevo tipo: ')
+				campo_bool = nuevo_tipo.isdigit()
+				if campo_bool == False:
+					continue
+				nuevo_tipo_int = int(nuevo_tipo)
+				if nuevo_tipo_int >= 1 and nuevo_tipo_int <= 8:
+					break;
 			obj_encontrado['tipo'] = nuevo_tipo
 			print('\n tipo modificado \n')
 		elif opc == 3:
-			nuevo_id = input('\n Introduzca el nuevo id: ')
+			#Mejorar los break
+			ya_existe_id = False
+			while True:
+				nuevo_id = input('\n Introduzca el nuevo id: ')
+				campo_bool = nuevo_id.isdigit()
+				if nuevo_id == '' or campo_bool == False:
+					continue
+				if not os.path.isfile('.usuarios.csv'):
+					if obj_encontrado['uid'] == int(nuevo_id):
+						print('\n Error. Es el mismo id\n')
+						continue
+				else:
+					break
+				if obj_encontrado['uid'] == nuevo_id:
+					print('\n Error. Es el mismo id\n')
+					continue
+				else:
+					break
+			ya_existe_id = existe_id(nuevo_id, 'usuarios')
+			while ya_existe_id == True:
+				print('\n El id introducido ya esta en uso \n')
+				nuevo_id = input('\n Introduzca el nuevo id: ')
+				ya_existe_id = existe_id(nuevo_id, 'usuarios')
 			obj_encontrado['uid'] = nuevo_id
 			print('\n id modificado \n')
 		elif opc == 4:
-			#No está funcionando la validacion
+			#NO está funcionando la validacion
 			encontrado = False
 			id_colonia_actual = obj_encontrado['clave de colonia']
 			while encontrado == False:
@@ -352,15 +396,32 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 				if encontrado == False and ctr == 1:
 					print('\n Error. Introdujo la clave actual \n')
 		elif opc == 5:
-			nueva_direccion = input('\n Introduzca la nueva direccion: ')
+			while True:
+				nueva_direccion = input('\n Introduzca la nueva direccion: ')
+				if nueva_direccion == '':
+					continue
+				else:
+					break
 			obj_encontrado['direccion'] = nueva_direccion
 			print('\n Direccion modificada \n')
 		elif opc == 6:
-			nuevo_consumo = input('\n Introduzca el nuevo consumo: ')
+			while True:
+				nuevo_consumo = input('\n Introduzca el nuevo consumo: ')
+				campo_bool = nuevo_consumo.isdigit()
+				if campo_bool == False:
+					continue
+				else:
+					break
 			obj_encontrado['consumo'] = nuevo_consumo
 			print('\n Consumo modificado \n')
 		elif opc == 7:
-			nuevo_pago = input('\n Introduzca el pago: ')
+			while True:
+				nuevo_pago = input('\n Introduzca el pago: ')
+				campo_bool = nuevo_pago.isdigit()
+				if campo_bool == False:
+					continue
+				else:
+					break
 			obj_encontrado['pago'] = nuevo_pago
 			print('\n Pago modificado \n')
 	elif objeto_tipo == 'colonia':
