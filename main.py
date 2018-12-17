@@ -11,6 +11,7 @@ ESQUEMA_TARIFAS = ['porcentaje extra']
 usuarios = []
 colonias = []
 tarifas = []
+folio = 0
 control_altas = 0
 nombre_colonia = None
 
@@ -21,13 +22,10 @@ def _menu_principal():
 	print('\n\t\t\t MENU \n')
 	print('*' * 70)
 	print('\n\n\t\t 1. Altas \n')
-	#Update - necesita id
 	print('\n\t\t 2. Modificacion de datos \n')
-	print('\n\t\t 3. Proceso para facturacion \n')
-	#delete - necesita id
-	print('\n\t\t 4. Bajas \n')
-	print('\n\t\t 5. Reportes \n')
-	print('\n\t\t 6. Salir \n')
+	print('\n\t\t 3. Bajas \n')
+	print('\n\t\t 4. Reportes \n')
+	print('\n\t\t 5. Salir \n')
 	
 
 def mandar_opcion(opc):
@@ -36,12 +34,10 @@ def mandar_opcion(opc):
 	elif opc == 2:
 		modificacion_menu()
 	elif opc == 3:
-		proceso()
-	elif opc == 4:
 		bajas()
-	elif opc == 5:
+	elif opc == 4:
 		reportes()
-	elif opc == 6:
+	elif opc == 5:
 		pass
 
 
@@ -197,28 +193,37 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 				campo = None
 				continue
 		if nombre_campo == 'uid':
-			for usuario in usuarios:
-				if usuario['uid'] == campo:
-					print('\n id repetido \n')
-					campo = None
-					id_repetido = True
+			id_repetido = existe_id(campo, 'usuarios')
 			if id_repetido:
+				print('\n Id repetido \n')
+				campo = None
 				continue
+			# for usuario in usuarios:
+			# 	if usuario['uid'] == campo:
+			# 		print('\n id repetido \n')
+			# 		campo = None
+			# 		id_repetido = True
+			# if id_repetido:
+			# 	continue
 		if nombre_campo == 'clave_desde_usuario':
 			for colonia in colonias:
-				#print(type(colonia['clave']))
-				#print(type(int(campo)))
-				if colonia['clave'] == int(campo):
-					id_encontrado = True
-					nombre_colonia = colonia['nombre']
-					print('colonia encontrada: {}'.format(nombre_colonia))
+				#Necesito el ciclo para imprimir el nombre
+				if not os.path.isfile('.usuarios.csv'):
+					if colonia['clave'] == int(campo):
+						id_encontrado = True
+						nombre_colonia = colonia['nombre']
+						print('colonia encontrada: {}'.format(nombre_colonia))
+				else:
+					if colonia['clave'] == campo:
+						id_encontrado = True
+						nombre_colonia = colonia['nombre']
+						print('colonia encontrada: {}'.format(nombre_colonia))
 			if not id_encontrado:
 				print('\n No existe esa clave de colonia\n')
 				campo = None
 				continue
 		if nombre_campo == 'nombre_desde_usuario':
 			campo = nombre_colonia
-		#falta validar que la tarifa si esté
 		return campo
 
 
@@ -235,13 +240,18 @@ def obtener_campo_colonia(nombre_campo, mensaje='\n¿Cual es el {} de la colonia
 			campo = None
 			continue
 		if nombre_campo == 'clave':
-			for colonia in colonias:
-				if colonia['clave'] == int(campo):
-					print('\n Clave repetida\n')
-					campo = None
-					clave_repetida = True
+			clave_repetida = existe_id(campo, 'colonias')
 			if clave_repetida:
+				print('\n Clave repetida\n')
+				campo = None
 				continue
+			# for colonia in colonias:
+			# 	if colonia['clave'] == int(campo):
+			# 		print('\n Clave repetida\n')
+			# 		campo = None
+			# 		clave_repetida = True
+			# if clave_repetida:
+			# 	continue
 	return campo
 
 
@@ -253,11 +263,17 @@ def existe_id(id_buscado, objeto):
 	encontrado = False
 	if objeto == 'usuarios':
 		for usuario in usuarios:
+			if not os.path.isfile('.usuarios.csv'):
+				if usuario['uid'] == int(id_buscado):
+					encontrado = True
 			if usuario['uid'] == id_buscado:
 				encontrado = True
 				#print('\n el id si existe \n')
 	elif objeto == 'colonias':
 		for colonia in colonias:
+			if not os.path.isfile('.colonias.csv'):
+				if colonia['clave'] == int(id_buscado):
+					encontrado = True
 			if colonia['clave'] == id_buscado:
 				encontrado = True
 				#print('\n La clave si existe \n')
@@ -360,10 +376,6 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 			print('\n clave modificada \n')
 
 
-def proceso():
-	print('\n Entro a proceso \n')
-
-
 def bajas():
 	print('\n\n\t\t MENU BAJAS \n')
 	print('\n 1. Usuario \n 2. Colonia \n')
@@ -407,6 +419,7 @@ def pagos_no_realizados():
 	global tarifas
 	suma_totales = 0
 	total_debio_pagar = 0
+	hay_un_usuario = False
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
 	with open(nombre_reporte_generado, mode='w') as f:
 		print('\n\n\t\t REPORTE DE PAGOS NO REALIZADOS \n\n')
@@ -414,30 +427,53 @@ def pagos_no_realizados():
 		print('\n\t Id  Nombre \t Colonia   Pago realizado   Total a pagar')
 		f.write('\n\t Id  Nombre \t Colonia   Pago realizado   Total a pagar')
 		
-		#No ayuda el usuarios[1:] si es la primera vez que se abre el programa (sin archivos hechos)
-		for usuario in usuarios[1:]:
-			#Agarro el index
-			idx_tipo = int(usuario['tipo'])
-			#Agarro la lista (el row, por que asi estan acomodados)
-			lista_tarifa = tarifas[idx_tipo]
-			#Agarro la celda 0, donde esta el valor
-			valor_tarifa = lista_tarifa[0]
-			total_usuario = int(usuario['consumo']) * float(valor_tarifa)
-			if int(usuario['pago']) < total_usuario:
-				print('\n\t {} | {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
-				f.write('\n\t {} | {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
-				suma_totales += int(usuario['pago'])
-				total_debio_pagar += total_usuario 
-		print('\n\n Total pagos realizados: {}'.format(suma_totales))
-		print('\n\n Total que se debio pagar: {}'.format(total_debio_pagar))
-		f.write('\n\n\n Total general: {}'.format(suma_totales))
-		f.write('\n\n Total que se debio pagar: {}'.format(total_debio_pagar))
+		if not os.path.isfile('.usuarios.csv'):
+			for usuario in usuarios:
+				#Agarro el index
+				idx_tipo = int(usuario['tipo'])
+				#Agarro la lista (el row, por que asi estan acomodados)
+				lista_tarifa = tarifas[idx_tipo]
+				#Agarro la celda 0, donde esta el valor
+				valor_tarifa = lista_tarifa[0]
+				total_usuario = int(usuario['consumo']) * float(valor_tarifa)
+				if int(usuario['pago']) < total_usuario:
+					print('\n\t {} | {} | {} |          {}           | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
+					f.write('\n\t {} | {} | {} |        {}          | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
+					suma_totales += int(usuario['pago'])
+					total_debio_pagar += total_usuario
+					hay_un_usuario = True
+		else:	
+			for usuario in usuarios[1:]:
+				#Agarro el index
+				idx_tipo = int(usuario['tipo'])
+				#Agarro la lista (el row, por que asi estan acomodados)
+				lista_tarifa = tarifas[idx_tipo]
+				#Agarro la celda 0, donde esta el valor
+				valor_tarifa = lista_tarifa[0]
+				total_usuario = int(usuario['consumo']) * float(valor_tarifa)
+				if int(usuario['pago']) < total_usuario:
+					print('\n\t {} | {} | {} |         {}         | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
+					f.write('\n\t {} | {} | {} |        {}        | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago'], total_usuario))
+					suma_totales += int(usuario['pago'])
+					total_debio_pagar += total_usuario
+					hay_un_usuario = True
+		if hay_un_usuario: 
+			print('\n\n Total pagos realizados: {}'.format(suma_totales))
+			print('\n\n Total que se debio pagar: {}'.format(total_debio_pagar))
+			f.write('\n\n\n Total general: {}'.format(suma_totales))
+			f.write('\n\n Total que se debio pagar: {}'.format(total_debio_pagar))
+		else:
+			print('\t ---  -----       ---      ---               ---')
+			print('\n Todos los usuarios pagaron')
+			f.write('\t ---  -----       ---      ---             ---')
+			f.write('\n Todos los usuarios pagaron')
 
 
 def pagos_realizados():
 	global usuarios
 	global tarifas
 	suma_totales = 0
+	hay_pago = False
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
 	with open(nombre_reporte_generado, mode='w') as f:
 		print('\n\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
@@ -445,21 +481,127 @@ def pagos_realizados():
 		print('\n\t Id  Nombre \t Colonia   Pago')
 		f.write('\n\t Id  Nombre \t Colonia   Pago')
 		
-		#No ayuda el usuarios[1:] si es la primera vez que se abre el programa (sin archivos hechos)
-		for usuario in usuarios[1:]:
-			#Agarro el index
-			idx_tipo = int(usuario['tipo'])
-			#Agarro la lista (el row, por que asi estan acomodados)
-			lista_tarifa = tarifas[idx_tipo]
-			#Agarro la celda 0, donde esta el valor
-			valor_tarifa = lista_tarifa[0]
-			total_usuario = int(usuario['consumo']) * float(valor_tarifa)
-			if int(usuario['pago']) == total_usuario or (int(usuario['pago']) > total_usuario):
-				print('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
-				f.write('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
-				suma_totales += int(usuario['pago'])
-		print('\n\n Total general: {}'.format(suma_totales))
-		f.write('\n\n\n Total general: {}'.format(suma_totales))
+		if not os.path.isfile('.usuarios.csv'):
+			for usuario in usuarios:
+				#Agarro el index
+				print(usuario)
+				idx_tipo = int(usuario['tipo'])
+				print(idx_tipo)
+				#Agarro la lista (el row, por que asi estan acomodados)
+				lista_tarifa = tarifas[idx_tipo]
+				#Agarro la celda 0, donde esta el valor
+				valor_tarifa = lista_tarifa[0]
+				print(valor_tarifa)
+				total_usuario = int(usuario['consumo']) * float(valor_tarifa)
+				print(total_usuario)
+				if int(usuario['pago']) == total_usuario or (int(usuario['pago']) > total_usuario):
+					print('\n\t {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
+					f.write('\n\t {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
+					suma_totales += int(usuario['pago'])
+					hay_pago = True
+		else:
+			for usuario in usuarios[1:]:
+				#Agarro el index
+				idx_tipo = int(usuario['tipo'])
+				#Agarro la lista (el row, por que asi estan acomodados)
+				lista_tarifa = tarifas[idx_tipo]
+				#Agarro la celda 0, donde esta el valor
+				valor_tarifa = lista_tarifa[0]
+				total_usuario = int(usuario['consumo']) * float(valor_tarifa)
+				if int(usuario['pago']) == total_usuario or (int(usuario['pago']) > total_usuario):
+					print('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
+					f.write('\n\t {} | {} | {} | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
+					suma_totales += int(usuario['pago'])
+					hay_pago = True
+		if hay_pago:
+			print('\n\n Total general: {}'.format(suma_totales))
+			f.write('\n\n\n Total general: {}'.format(suma_totales))
+		else:
+			print('\t ---  -----       ---      ---')
+			print('\n Ningun usuario cumplio con el pago establecido \n')
+			f.write('\t ---  -----       ---      ---')
+			f.write('\n Ningun usuario cumplio con el pago establecido \n')
+
+
+def facturacion_todos_usuarios():
+	global usuarios
+	total_general = 0
+	print('\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
+	print('\t id  Nombre     Colonia    Consumo   Importe   Sobreconsumo   Total')
+	for usuario in usuarios[1:]:
+		consumo = int(usuario['consumo'])
+		idx_tipo = int(usuario['tipo'])
+		lista_tarifa = tarifas[idx_tipo]
+		valor_tarifa = int(lista_tarifa[0])
+		importe = valor_tarifa * consumo
+		if consumo > 300:
+			sobrecon = importe * .50
+			total = importe + sobrecon
+		elif consumo > 200:
+			sobrecon = importe * .30
+			total = importe + sobrecon
+		elif consumo > 100:
+			sobrecon = importe * .20
+			total = importe + sobrecon
+		elif consumo > 50:
+			sobrecon = importe * .10
+			total = importe + sobrecon
+		else:
+			sobrecon = 0
+			total = importe + sobrecon
+		total_general = total_general + total
+		print('\t {} | {}   |  {}  | {}  |  {}      | {}    |  {}  '.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'],
+			consumo, importe, sobrecon, total))
+	print('\n Total general: {}'.format(total_general))
+
+
+
+def facturacion_individual():
+	global usuarios
+	id_encontrado = False
+	obj_encontrado_bool = False
+	while id_encontrado == False:
+		id_buscado = input('\n Id del usuario: ')
+		id_encontrado = existe_id(id_buscado, 'usuarios')
+		if id_encontrado == False:
+			print('\n Introduzca un id valido \n')
+	for usuario in usuarios[1:]:
+		if usuario['uid'] == id_buscado:
+			obj_encontrado = usuario
+			obj_encontrado_bool = True
+	if obj_encontrado_bool:
+		consumo = int(obj_encontrado['consumo'])
+		idx_tipo = int(obj_encontrado['tipo'])
+		lista_tarifa = tarifas[idx_tipo]
+		valor_tarifa = int(lista_tarifa[0])
+		importe = valor_tarifa * consumo
+		if consumo > 300:
+			sobrecon = importe * .50
+			total = importe + sobrecon
+		elif consumo > 200:
+			sobrecon = importe * .30
+			total = importe + sobrecon
+		elif consumo > 100:
+			sobrecon = importe * .20
+			total = importe + sobrecon
+		elif consumo > 50:
+			sobrecon = importe * .10
+			total = importe + sobrecon
+		else:
+			sobrecon = 0
+			total = importe + sobrecon
+			
+	print('\n\n COMPAÑIA DE AGUA POTABLE ACME\t\t\tFACTURA')
+	print('\n Av. Matamoros 2004\t\t\t\tFolio: {}'.format(folio+1))
+	print('\n Fraccionamiento Colinas del Valle\n Monterrey, NL.')
+	print('\n RFC: PAA 141120 S4')
+	print('\n Monterrey, NL. a')
+	print('\n\n id: {} \n Nombre: {} \n Colonia: {} \n Direccion: {} \n '.format(obj_encontrado['uid'], obj_encontrado['nombre'], obj_encontrado['nombre de colonia'], obj_encontrado['direccion']))
+	print('\n Tipo de usuario: {} \n Consumo: {} \n Importe: {} \n Sobreconsumo: {}'.format(obj_encontrado['tipo'], consumo, importe, sobrecon))
+	print('\n Total a pagar: {}'.format(total))
+	print('\n Paguese antes de: 22/may/19')
+	
+
 
 
 
@@ -510,6 +652,13 @@ def reportes():
 		pagos_realizados()
 	elif opc == 2:
 		pagos_no_realizados()
+	elif opc == 3:
+		print('\n Tipo de facturacion \n 1. Facturacion individual \n 2. Todos los usuarios')
+		opcf = int(input('\n Opcion: '))
+		if opcf == 1:
+			facturacion_individual()
+		elif opcf == 2:
+			facturacion_todos_usuarios()
 
 
 
@@ -519,10 +668,10 @@ if __name__ == '__main__':
 	while True:
 		_menu_principal()
 		command = int(input('\n\n\t Opcion: '))
-		if command == 6:
-			print('\n Ha salida del programa \n') 
+		if command == 5:
+			print('\n Ha salido del programa \n') 
 			break
-		if command < 1 or command > 6:
+		if command < 1 or command > 5:
 			continue
 		mandar_opcion(command)
 		#print(usuarios[1].get('nombre'))
