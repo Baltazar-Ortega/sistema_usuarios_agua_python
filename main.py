@@ -281,6 +281,9 @@ def existe_id(id_buscado, objeto):
 
 def modificacion_menu():
 	#Se puede modificar info de usuario y de colonia
+	if len(usuarios) == 0:
+		print('\n Debe introducir usuarios primero \n')
+		return
 	print('\n\n\t\t MENU MODIFICACION \n')
 	print('\n 1. Usuario \n 2. Colonia \n')
 	opc = int(input('\n\t Opcion: '))
@@ -289,15 +292,26 @@ def modificacion_menu():
 		id_encontrado = existe_id(id_buscado, 'usuarios')
 		if id_encontrado:
 			#Este ciclo para encontrar el usuario, y luego se manda
-			for usuario in usuarios[1:]:
-				if usuario['uid'] == id_buscado:
-					print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
-					modificacion_submenus('usuario', usuario)
-					break
-				if usuario['uid'] == int(id_buscado):
-					print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
-					modificacion_submenus('usuario', usuario)
-					break
+			if not os.path.isfile('.usuarios.csv'):
+				for usuario in usuarios:
+					if usuario['uid'] == id_buscado:
+						print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
+						modificacion_submenus('usuario', usuario)
+						break
+					if usuario['uid'] == int(id_buscado):
+						print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
+						modificacion_submenus('usuario', usuario)
+						break
+			else:
+				for usuario in usuarios[1:]:
+					if usuario['uid'] == id_buscado:
+						print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
+						modificacion_submenus('usuario', usuario)
+						break
+					if usuario['uid'] == int(id_buscado):
+						print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
+						modificacion_submenus('usuario', usuario)
+						break
 		else:
 			print('\n El id introducido no existe\n')	
 	elif opc == 2:
@@ -305,15 +319,26 @@ def modificacion_menu():
 		clave_encontrada = existe_id(clave_buscada, 'colonias')
 		if clave_encontrada:
 			#Este ciclo para encontrar la colonia, y luego se manda
-			for colonia in colonias[1:]:
-				if colonia['clave'] == clave_buscada:
-					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
-					modificacion_submenus('colonia', colonia)
-					break
-				if colonia['clave'] == int(clave_buscada):
-					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
-					modificacion_submenus('colonia', colonia)
-					break
+			if not os.path.isfile('.colonias.csv'):
+				for colonia in colonias:
+					if colonia['clave'] == clave_buscada:
+						print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
+						modificacion_submenus('colonia', colonia)
+						break
+					if colonia['clave'] == int(clave_buscada):
+						print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
+						modificacion_submenus('colonia', colonia)
+						break
+			else:
+				for colonia in colonias[1:]:
+					if colonia['clave'] == clave_buscada:
+						print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
+						modificacion_submenus('colonia', colonia)
+						break
+					if colonia['clave'] == int(clave_buscada):
+						print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
+						modificacion_submenus('colonia', colonia)
+						break
 		else:
 			print('\n La clave introducida no existe\n')
 	
@@ -479,9 +504,13 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 				if usuario['clave de colonia'] == clave_original or usuario['clave de colonia'] == int(clave_original):
 					usuario['clave de colonia'] = nueva_clave
 			print('\n clave modificada \n')
+	input()
 
 
 def bajas():
+	if len(usuarios) == 0:
+		print('\n Debe introducir usuarios primero \n')
+		return
 	print('\n\n\t\t MENU BAJAS \n')
 	print('\n 1. Usuario \n 2. Colonia \n')
 	opc = int(input('\n\t Opcion: '))
@@ -492,15 +521,25 @@ def bajas():
 			#Este ciclo for es solo para el print
 			i = 1
 			idx = -1
-			for usuario in usuarios[1:]:
-				if usuario['uid'] == id_buscado:
-					print('\n Usuario a borrar. Nombre: {}'.format(usuario['nombre']))
-					idx = i
-					break
-				i += 1
-			del usuarios[idx]
+			if not os.path.isfile('.usuarios.csv'):
+				for usuario in usuarios:
+					if usuario['uid'] == int(id_buscado):
+						print('\n Usuario a borrar. Nombre: {}'.format(usuario['nombre']))
+						idx = i
+						break
+					i += 1
+				del usuarios[idx]
+			else:
+				for usuario in usuarios[1:]:
+					if usuario['uid'] == id_buscado:
+						print('\n Usuario a borrar. Nombre: {}'.format(usuario['nombre']))
+						idx = i
+						break
+					i += 1
+				del usuarios[idx]
 		else:
 			print('\n El id introducido no existe\n')	
+	#PENDIENTE - Esta borrando el header de .usuarios
 	elif opc == 2:
 		clave_buscada = input('\n Introduzca la clave la colonia: ')
 		clave_encontrada = existe_id(clave_buscada, 'colonias')
@@ -508,15 +547,61 @@ def bajas():
 			#Este ciclo for es solo para el print del nombre
 			i = 1
 			idx = -1
-			for colonia in colonias[1:]:
-				if colonia['clave'] == clave_buscada:
-					print('\n Colonia a borrar. Nombre: {}'.format(colonia['nombre']))
-					idx = i
-					break
-				i += 1
-			del colonias[idx]
+			if not os.path.isfile('.colonias.csv'):
+				for colonia in colonias:
+					if colonia['clave'] == int(clave_buscada):
+						print('\n Colonia a borrar. Nombre: {}'.format(colonia['nombre']))
+						idx = i
+						break
+					i += 1
+				del colonias[idx] #Se borro del archivo colonias
+				#Se deben borrar todos los usuarios de esa colonia
+				cont = 0
+				for usuario in usuarios:
+					if usuario['clave de colonia'] == int(clave_buscada):
+						del usuarios[cont]
+					cont = cont + 1
+				print('\n Se han borrado los usuarios de esa colonia \n')
+			else:
+				for colonia in colonias[1:]:
+					if colonia['clave'] == clave_buscada:
+						print('\n Colonia a borrar. Nombre: {}'.format(colonia['nombre']))
+						idx = i
+						break
+					i += 1
+				del colonias[idx]
+				idx = 0
+				cont = 0
+				i = 0
+				segunda_interaccion = False
+				#Hacer un ciclo para saber si esque todavia hay la misma clave
+				#Ejecutar ciclo para borrar si es que todavia hay
+				for usuario in usuarios[1:]:
+					if usuario['clave de colonia'] == clave_buscada:
+						print('\n Encontrado \n')
+						cont += 1
+				for j in range(cont+1):
+					i = 0
+					if segunda_interaccion:
+						for usuario in usuarios[1:]:
+							if usuario['clave de colonia'] == clave_buscada:
+								idx = i
+								segunda_interaccion = True
+								break
+							i += 1
+						del usuarios[idx]
+					else:
+						for usuario in usuarios[1:]:
+							if usuario['clave de colonia'] == clave_buscada:
+								idx = i
+								segunda_interaccion = True
+								break
+							i += 1
+						del usuarios[idx]
+				print('\n Se han borrado los usuarios de esa colonia \n')
 		else:
 			print('\n La clave introducida no existe\n')
+	input()
 
 
 def pagos_no_realizados():
@@ -572,6 +657,7 @@ def pagos_no_realizados():
 			print('\n Todos los usuarios pagaron')
 			f.write('\t ---  -----       ---      ---             ---')
 			f.write('\n Todos los usuarios pagaron')
+	input()
 
 
 def pagos_realizados():
@@ -589,16 +675,16 @@ def pagos_realizados():
 		if not os.path.isfile('.usuarios.csv'):
 			for usuario in usuarios:
 				#Agarro el index
-				print(usuario)
+				
 				idx_tipo = int(usuario['tipo'])
-				print(idx_tipo)
+				
 				#Agarro la lista (el row, por que asi estan acomodados)
 				lista_tarifa = tarifas[idx_tipo]
 				#Agarro la celda 0, donde esta el valor
 				valor_tarifa = lista_tarifa[0]
-				print(valor_tarifa)
+				
 				total_usuario = int(usuario['consumo']) * float(valor_tarifa)
-				print(total_usuario)
+				
 				if int(usuario['pago']) == total_usuario or (int(usuario['pago']) > total_usuario):
 					print('\n\t {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
 					f.write('\n\t {} | {} | {}  | {}'.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'], usuario['pago']))
@@ -626,38 +712,47 @@ def pagos_realizados():
 			print('\n Ningun usuario cumplio con el pago establecido \n')
 			f.write('\t ---  -----       ---      ---')
 			f.write('\n Ningun usuario cumplio con el pago establecido \n')
+	input()
 
 
 def facturacion_todos_usuarios():
 	global usuarios
 	total_general = 0
-	print('\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
-	print('\t id  Nombre     Colonia    Consumo   Importe   Sobreconsumo   Total')
-	for usuario in usuarios[1:]:
-		consumo = int(usuario['consumo'])
-		idx_tipo = int(usuario['tipo'])
-		lista_tarifa = tarifas[idx_tipo]
-		valor_tarifa = int(lista_tarifa[0])
-		importe = valor_tarifa * consumo
-		if consumo > 300:
-			sobrecon = importe * .50
-			total = importe + sobrecon
-		elif consumo > 200:
-			sobrecon = importe * .30
-			total = importe + sobrecon
-		elif consumo > 100:
-			sobrecon = importe * .20
-			total = importe + sobrecon
-		elif consumo > 50:
-			sobrecon = importe * .10
-			total = importe + sobrecon
-		else:
-			sobrecon = 0
-			total = importe + sobrecon
-		total_general = total_general + total
-		print('\t {} | {}   |  {}  | {}  |  {}      | {}    |  {}  '.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'],
-			consumo, importe, sobrecon, total))
-	print('\n Total general: {}'.format(total_general))
+	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	with open(nombre_reporte_generado, mode='w') as f:
+		print('\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
+		print('\t id  Nombre     Colonia    Consumo   Importe   Sobreconsumo   Total')
+		f.write('\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
+		f.write('\t id  Nombre     Colonia    Consumo   Importe   Sobreconsumo   Total')
+		for usuario in usuarios[1:]:
+			consumo = int(usuario['consumo'])
+			idx_tipo = int(usuario['tipo'])
+			lista_tarifa = tarifas[idx_tipo]
+			valor_tarifa = int(lista_tarifa[0])
+			importe = valor_tarifa * consumo
+			if consumo > 300:
+				sobrecon = importe * .50
+				total = importe + sobrecon
+			elif consumo > 200:
+				sobrecon = importe * .30
+				total = importe + sobrecon
+			elif consumo > 100:
+				sobrecon = importe * .20
+				total = importe + sobrecon
+			elif consumo > 50:
+				sobrecon = importe * .10
+				total = importe + sobrecon
+			else:
+				sobrecon = 0
+				total = importe + sobrecon
+			total_general = total_general + total
+			print('\t {} | {}   |  {}  | {}  |  {}      | {}    |  {}  '.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'],
+				consumo, importe, sobrecon, total))
+			f.write('\n\t {} | {}   |  {}  | {}  |  {}      | {}    |  {}  '.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'],
+				consumo, importe, sobrecon, total))
+		print('\n Total general: {}'.format(total_general))
+		f.write('\n\n Total general: {}'.format(total_general))
+	input()
 
 
 
@@ -695,16 +790,29 @@ def facturacion_individual():
 		else:
 			sobrecon = 0
 			total = importe + sobrecon
-			
-	print('\n\n COMPAÑIA DE AGUA POTABLE ACME\t\t\tFACTURA')
-	print('\n Av. Matamoros 2004\t\t\t\tFolio: {}'.format(folio+1))
-	print('\n Fraccionamiento Colinas del Valle\n Monterrey, NL.')
-	print('\n RFC: PAA 141120 S4')
-	print('\n Monterrey, NL. a')
-	print('\n\n id: {} \n Nombre: {} \n Colonia: {} \n Direccion: {} \n '.format(obj_encontrado['uid'], obj_encontrado['nombre'], obj_encontrado['nombre de colonia'], obj_encontrado['direccion']))
-	print('\n Tipo de usuario: {} \n Consumo: {} \n Importe: {} \n Sobreconsumo: {}'.format(obj_encontrado['tipo'], consumo, importe, sobrecon))
-	print('\n Total a pagar: {}'.format(total))
-	print('\n Paguese antes de: 22/may/19')
+	
+	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	with open(nombre_reporte_generado, mode='w') as f:
+		print('\n\n COMPAÑIA DE AGUA POTABLE ACME\t\t\tFACTURA')
+		print('\n Av. Matamoros 2004\t\t\t\tFolio: {}'.format(folio+1))
+		print('\n Fraccionamiento Colinas del Valle\n Monterrey, NL.')
+		print('\n RFC: PAA 141120 S4')
+		print('\n Monterrey, NL. a')
+		print('\n\n id: {} \n Nombre: {} \n Colonia: {} \n Direccion: {} \n '.format(obj_encontrado['uid'], obj_encontrado['nombre'], obj_encontrado['nombre de colonia'], obj_encontrado['direccion']))
+		print('\n Tipo de usuario: {} \n Consumo: {} \n Importe: {} \n Sobreconsumo: {}'.format(obj_encontrado['tipo'], consumo, importe, sobrecon))
+		print('\n Total a pagar: {}'.format(total))
+		print('\n Paguese antes de: 22/may/19')
+
+		f.write('\n\n COMPAÑIA DE AGUA POTABLE ACME\t\t\tFACTURA')
+		f.write('\n Av. Matamoros 2004\t\t\t\tFolio: {}'.format(folio-1))
+		f.write('\n Fraccionamiento Colinas del Valle\n Monterrey, NL.')
+		f.write('\n RFC: PAA 141120 S4')
+		f.write('\n Monterrey, NL. a')
+		f.write('\n\n id: {} \n Nombre: {} \n Colonia: {} \n Direccion: {} \n '.format(obj_encontrado['uid'], obj_encontrado['nombre'], obj_encontrado['nombre de colonia'], obj_encontrado['direccion']))
+		f.write('\n Tipo de usuario: {} \n Consumo: {} \n Importe: {} \n Sobreconsumo: {}'.format(obj_encontrado['tipo'], consumo, importe, sobrecon))
+		f.write('\n Total a pagar: {}'.format(total))
+		f.write('\n Paguese antes de: 22/may/19')
+	input()
 	
 
 
@@ -750,6 +858,9 @@ def imprimir_en_archivo():
 
 
 def reportes():
+	if len(usuarios) == 0:
+		print('\n Debe introducir usuarios primero \n')
+		return
 	print('\n\n\t\t MENU REPORTES \n')
 	print('\n 1. Pagos realizados \n 2. Pagos no realizados \n 3. Facturacion \n')
 	opc = int(input('\n\t Opcion: '))
@@ -773,11 +884,17 @@ if __name__ == '__main__':
 	while True:
 		_menu_principal()
 		command = int(input('\n\n\t Opcion: '))
+		if os.path.isfile('.usuarios.csv') and command == 5:
+			print('\n Ha salido del programa \n')
+			break
+		if control_altas == 0 and command == 5:
+			continue
 		if command == 5:
 			print('\n Ha salido del programa \n') 
 			break
 		if command < 1 or command > 5:
 			continue
 		mandar_opcion(command)
+		os.system('cls')
 		#print(usuarios[1].get('nombre'))
 	imprimir_en_archivo()
