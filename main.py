@@ -103,6 +103,7 @@ def altas():
 			if mas_usuarios == 2:
 				break
 		control_altas = 1
+		return
 	while True:
 		print('\n\n 1. Nuevo usuario \n 2. Nueva colonia \n')
 		opc = int(input('\n Opcion: '))
@@ -207,13 +208,6 @@ def obtener_campo_usuario(nombre_campo, mensaje='\n¿Cual es el {} del usuario? 
 				print('\n Id repetido \n')
 				campo = None
 				continue
-			# for usuario in usuarios:
-			# 	if usuario['uid'] == campo:
-			# 		print('\n id repetido \n')
-			# 		campo = None
-			# 		id_repetido = True
-			# if id_repetido:
-			# 	continue
 		if nombre_campo == 'clave_desde_usuario':
 			if campo == '':
 				campo = None
@@ -254,13 +248,6 @@ def obtener_campo_colonia(nombre_campo, mensaje='\n {} de la colonia: '):
 				print('\n Clave repetida\n')
 				campo = None
 				continue
-			# for colonia in colonias:
-			# 	if colonia['clave'] == int(campo):
-			# 		print('\n Clave repetida\n')
-			# 		campo = None
-			# 		clave_repetida = True
-			# if clave_repetida:
-			# 	continue
 	return campo
 
 
@@ -277,7 +264,8 @@ def existe_id(id_buscado, objeto):
 					encontrado = True
 			if usuario['uid'] == id_buscado:
 				encontrado = True
-				#print('\n el id si existe \n')
+			if usuario['uid'] == int(id_buscado):
+				encontrado = True
 	elif objeto == 'colonias':
 		for colonia in colonias:
 			if not os.path.isfile('.colonias.csv'):
@@ -286,6 +274,8 @@ def existe_id(id_buscado, objeto):
 			if colonia['clave'] == id_buscado:
 				encontrado = True
 				#print('\n La clave si existe \n')
+			if colonia['clave'] == int(id_buscado):
+				encontrado = True
 	return encontrado
 
 
@@ -304,6 +294,10 @@ def modificacion_menu():
 					print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
 					modificacion_submenus('usuario', usuario)
 					break
+				if usuario['uid'] == int(id_buscado):
+					print('\n Usuario encontrado. Nombre: {}'.format(usuario['nombre']))
+					modificacion_submenus('usuario', usuario)
+					break
 		else:
 			print('\n El id introducido no existe\n')	
 	elif opc == 2:
@@ -313,6 +307,10 @@ def modificacion_menu():
 			#Este ciclo para encontrar la colonia, y luego se manda
 			for colonia in colonias[1:]:
 				if colonia['clave'] == clave_buscada:
+					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
+					modificacion_submenus('colonia', colonia)
+					break
+				if colonia['clave'] == int(clave_buscada):
 					print('\n Colonia encontrada. Nombre: {}'.format(colonia['nombre']))
 					modificacion_submenus('colonia', colonia)
 					break
@@ -349,7 +347,6 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 			obj_encontrado['tipo'] = nuevo_tipo
 			print('\n tipo modificado \n')
 		elif opc == 3:
-			#Mejorar los break
 			ya_existe_id = False
 			while True:
 				nuevo_id = input('\n Introduzca el nuevo id: ')
@@ -361,12 +358,11 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 						print('\n Error. Es el mismo id\n')
 						continue
 				else:
-					break
-				if obj_encontrado['uid'] == nuevo_id:
-					print('\n Error. Es el mismo id\n')
-					continue
-				else:
-					break
+					if obj_encontrado['uid'] == nuevo_id:
+						print('\n Error. Es el mismo id\n')
+						continue
+					else:
+						break
 			ya_existe_id = existe_id(nuevo_id, 'usuarios')
 			while ya_existe_id == True:
 				print('\n El id introducido ya esta en uso \n')
@@ -374,27 +370,31 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 				ya_existe_id = existe_id(nuevo_id, 'usuarios')
 			obj_encontrado['uid'] = nuevo_id
 			print('\n id modificado \n')
-		elif opc == 4:
-			#NO está funcionando la validacion
-			encontrado = False
-			id_colonia_actual = obj_encontrado['clave de colonia']
-			while encontrado == False:
-				ctr = 0
-				nueva_colonia_clave = input('\n Introduzca la clave de la nueva colonia: ')			#nueva: 103  actual: 101  for:101
-				for colonia in colonias[1:]:
-					nueva_colonia_nombre = colonia['nombre']                             
-					if colonia['clave'] == nueva_colonia_clave:
-						obj_encontrado['clave de colonia'] = nueva_colonia_clave
-						obj_encontrado['nombre de colonia'] = nueva_colonia_nombre
-						encontrado = True
-						print('\n Colonia modificada \n')
+		elif opc == 4: #colonia
+			col_encontrada = False
+			#print(type(obj_encontrado['clave de colonia'])) #Es string si se agarra del archivo, int si se agarra de la variable
+			while True:
+				nueva_colonia = input('\n Introduzca la clave de la nueva colonia: ')
+				campo_bool = nueva_colonia.isdigit()
+				if campo_bool == False:
+					continue
+				if nueva_colonia == '':
+					continue
+				if obj_encontrado['clave de colonia'] == nueva_colonia or obj_encontrado['clave de colonia'] == int(nueva_colonia):
+					print('\n Error. Es la clave actual \n')
+					continue
+				for usuario in usuarios:
+					if usuario['clave de colonia'] == nueva_colonia or usuario['clave de colonia'] == int(nueva_colonia):
+						print('\n Nueva colonia: {}'.format(usuario['nombre de colonia']))
+						col_encontrada = True
+						obj_encontrado['clave de colonia'] = nueva_colonia
+						obj_encontrado['nombre de colonia'] = usuario['nombre de colonia']
 						break
-					if colonia['clave'] == nueva_colonia_clave:
-						ctr += 1
-				if encontrado == False and ctr == 0:
-					print('\n No hay colonia con esa clave \n')
-				if encontrado == False and ctr == 1:
-					print('\n Error. Introdujo la clave actual \n')
+				if col_encontrada:
+					break
+				else:
+					print('\n Tiene que ingresar una clave que exista \n')
+					continue
 		elif opc == 5:
 			while True:
 				nueva_direccion = input('\n Introduzca la nueva direccion: ')
@@ -410,6 +410,8 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 				campo_bool = nuevo_consumo.isdigit()
 				if campo_bool == False:
 					continue
+				if nuevo_consumo == '':
+					continue
 				else:
 					break
 			obj_encontrado['consumo'] = nuevo_consumo
@@ -420,6 +422,8 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 				campo_bool = nuevo_pago.isdigit()
 				if campo_bool == False:
 					continue
+				if nuevo_consumo == '':
+					continue
 				else:
 					break
 			obj_encontrado['pago'] = nuevo_pago
@@ -428,12 +432,52 @@ def modificacion_submenus(objeto_tipo, obj_encontrado):
 		print('\n\n\t\t MENU MODIFICACION COLONIA \n 1. Nombre \n 2. clave \n')
 		opc = int(input('\n\tOpcion: '))	
 		if opc == 1:
-			nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
-			obj_encontrado['nombre'] = nuevo_nombre
+			nombre_original = obj_encontrado['nombre']
+			while True:
+				nuevo_nombre = input('\n Introduzca el nuevo nombre: ')
+				if nuevo_nombre == nombre_original:
+					print('\n Error. Introdujo el nombre que ya tiene \n')
+					continue
+				if nuevo_nombre == '':
+					continue
+				else:
+					break
+			for colonia in colonias:
+				if colonia['nombre'] == nombre_original:
+					#print('\n Ya se cambió el nombre')
+					colonia['nombre'] = nuevo_nombre
+					break
+			for usuario in usuarios:
+				if usuario['nombre de colonia'] == nombre_original:
+					usuario['nombre de colonia'] = nuevo_nombre
+					#print('\n Ya se cambió el nombre en los usuarios')
 			print('\n Nombre modificado \n')
 		elif opc == 2:
-			nueva_clave = input('\n Introduzca la nueva clave: ')
-			obj_encontrado['clave'] = nueva_clave
+			clave_original = obj_encontrado['clave']
+			while True:
+				nueva_clave = input('\n Introduzca la nueva clave: ')
+				campo_bool = nueva_clave.isdigit()
+				if campo_bool == False:
+					continue
+				if nueva_clave == clave_original or int(nueva_clave) == int(clave_original):
+					print('\n Error. Introdujo la misma clave \n')
+					continue
+				if existe_id(nueva_clave, 'colonias'):
+					print('\n La clave ya esta en uso \n')
+					continue
+				if nueva_clave == '':
+					continue
+				else:
+					break
+
+			#Cambiarlo en la colonia
+			for colonia in colonias:
+				if colonia['clave'] == clave_original or colonia['clave'] == int(clave_original):
+					colonia['clave'] = nueva_clave
+					break
+			for usuario in usuarios:
+				if usuario['clave de colonia'] == clave_original or usuario['clave de colonia'] == int(clave_original):
+					usuario['clave de colonia'] = nueva_clave
 			print('\n clave modificada \n')
 
 
