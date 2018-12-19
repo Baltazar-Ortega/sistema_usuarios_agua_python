@@ -48,6 +48,7 @@ def inicializar_variables_desde_archivo():
 			reader = csv.DictReader(f, fieldnames=ESQUEMA_USUARIO)
 			for row in reader:
 				usuarios.append(row)
+			#print(usuarios) Su primer row son los titulos
 	except FileNotFoundError as error:
 		print('\n Entre al errorusuarios\n')
 	#Leer lo del archivo y meterlo en la variable colonias
@@ -262,20 +263,26 @@ def existe_id(id_buscado, objeto):
 			if not os.path.isfile('.usuarios.csv'):
 				if usuario['uid'] == int(id_buscado):
 					encontrado = True
+					break
 			if usuario['uid'] == id_buscado:
 				encontrado = True
+				break
 			if usuario['uid'] == int(id_buscado):
 				encontrado = True
+				break
 	elif objeto == 'colonias':
 		for colonia in colonias:
 			if not os.path.isfile('.colonias.csv'):
 				if colonia['clave'] == int(id_buscado):
 					encontrado = True
+					break
 			if colonia['clave'] == id_buscado:
 				encontrado = True
+				break
 				#print('\n La clave si existe \n')
 			if colonia['clave'] == int(id_buscado):
 				encontrado = True
+				break
 	return encontrado
 
 
@@ -344,8 +351,6 @@ def modificacion_menu():
 	
 
 def modificacion_submenus(objeto_tipo, obj_encontrado):
-	#FALTAN Validaciones
-	#Recuerda que tienes una funcion llamada existe_id
 	opc = 0
 	if objeto_tipo == 'usuario':
 		print('\n\n\t\t MENU MODIFICACION USUARIO \n 1. Nombre \n 2. Tipo \n 3. id \n 4. Colonia \n 5.Direccion \n 6. Consumo \n 7. Pago')
@@ -519,8 +524,8 @@ def bajas():
 		id_encontrado = existe_id(id_buscado, 'usuarios')
 		if id_encontrado:
 			#Este ciclo for es solo para el print
-			i = 1
-			idx = -1
+			i = 0
+			idx = 0
 			if not os.path.isfile('.usuarios.csv'):
 				for usuario in usuarios:
 					if usuario['uid'] == int(id_buscado):
@@ -536,71 +541,90 @@ def bajas():
 						idx = i
 						break
 					i += 1
+				idx += 1
 				del usuarios[idx]
 		else:
-			print('\n El id introducido no existe\n')	
-	#PENDIENTE - Esta borrando el header de .usuarios
+			print('\n El id introducido no existe\n')	 
 	elif opc == 2:
-		clave_buscada = input('\n Introduzca la clave la colonia: ')
-		clave_encontrada = existe_id(clave_buscada, 'colonias')
-		if clave_encontrada:
-			#Este ciclo for es solo para el print del nombre
-			i = 1
-			idx = -1
-			if not os.path.isfile('.colonias.csv'):
-				for colonia in colonias:
-					if colonia['clave'] == int(clave_buscada):
-						print('\n Colonia a borrar. Nombre: {}'.format(colonia['nombre']))
-						idx = i
-						break
-					i += 1
-				del colonias[idx] #Se borro del archivo colonias
-				#Se deben borrar todos los usuarios de esa colonia
-				cont = 0
+		while True:
+			clave_buscada = input('\n Introduzca la clave la colonia: ')
+			clave_encontrada = existe_id(clave_buscada, 'colonias')
+			campo_bool = clave_buscada.isdigit()
+			if clave_buscada == '' or campo_bool == False:
+				continue
+			if clave_encontrada == False:
+				print('\n No existe la clave introducida \n')
+				continue
+			else:
+				print('\n Colonia encontrada \n')
+				break
+		idx = 0
+		i = 0
+		if not os.path.isfile('.colonias.csv'):
+			for colonia in colonias:
+				if colonia['clave'] == int(clave_buscada):
+					print('\n Colonia a borrar: {}'.format(colonia['nombre']))
+					idx = i
+					break
+				i += 1
+			del colonias[idx]
+			#Ahora sigue borrar todos los usuarios con esa colonia
+			idx = 0
+			i = 0
+			si_coincidencias_clave = True
+			while si_coincidencias_clave:
+				idx = 0
+				i = 0
+				ctr = 0
 				for usuario in usuarios:
 					if usuario['clave de colonia'] == int(clave_buscada):
-						del usuarios[cont]
-					cont = cont + 1
-				print('\n Se han borrado los usuarios de esa colonia \n')
-			else:
-				for colonia in colonias[1:]:
-					if colonia['clave'] == clave_buscada:
-						print('\n Colonia a borrar. Nombre: {}'.format(colonia['nombre']))
+						print('\n Usuario borrado: {}'.format(usuario['nombre']))
 						idx = i
+						ctr = 1
 						break
 					i += 1
-				del colonias[idx]
+				if ctr == 0:
+					si_coincidencias_clave = False
+				else:
+					del usuarios[idx]
+					continue
+		else:
+			#Me salto el primero porque son los titulos. Todo el archivo está en strings
+			for colonia in colonias[1:]:
+				if colonia['clave'] == clave_buscada:
+					print('\n Colonia a borrar: {}'.format(colonia['nombre']))
+					idx = i
+					break
+				i += 1
+			idx += 1
+			del colonias[idx]
+			#Ahora sigue borrar todos los usuarios con esa colonia
+			idx = 0
+			i = 0
+			si_coincidencias_clave = True
+			while si_coincidencias_clave:
 				idx = 0
-				cont = 0
 				i = 0
-				segunda_interaccion = False
-				#Hacer un ciclo para saber si esque todavia hay la misma clave
-				#Ejecutar ciclo para borrar si es que todavia hay
+				ctr = 0
 				for usuario in usuarios[1:]:
 					if usuario['clave de colonia'] == clave_buscada:
-						print('\n Encontrado \n')
-						cont += 1
-				for j in range(cont+1):
-					i = 0
-					if segunda_interaccion:
-						for usuario in usuarios[1:]:
-							if usuario['clave de colonia'] == clave_buscada:
-								idx = i
-								segunda_interaccion = True
-								break
-							i += 1
-						del usuarios[idx]
-					else:
-						for usuario in usuarios[1:]:
-							if usuario['clave de colonia'] == clave_buscada:
-								idx = i
-								segunda_interaccion = True
-								break
-							i += 1
-						del usuarios[idx]
-				print('\n Se han borrado los usuarios de esa colonia \n')
-		else:
-			print('\n La clave introducida no existe\n')
+						print('\n Usuario borrado: {}'.format(usuario['nombre']))
+						idx = i
+						ctr = 1
+						break
+					i += 1
+				if ctr == 0:
+					si_coincidencias_clave = False
+				else:
+					idx += 1
+					del usuarios[idx]
+					continue
+
+
+
+
+			
+		
 	input()
 
 
@@ -611,6 +635,7 @@ def pagos_no_realizados():
 	total_debio_pagar = 0
 	hay_un_usuario = False
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	nombre_reporte_generado += '.txt'
 	with open(nombre_reporte_generado, mode='w') as f:
 		print('\n\n\t\t REPORTE DE PAGOS NO REALIZADOS \n\n')
 		f.write('\n\t\t REPORTE DE PAGOS NO REALIZADOS \n\n')
@@ -666,6 +691,7 @@ def pagos_realizados():
 	suma_totales = 0
 	hay_pago = False
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	nombre_reporte_generado += '.txt'
 	with open(nombre_reporte_generado, mode='w') as f:
 		print('\n\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
 		f.write('\n\n\t\t REPORTE DE PAGOS REALIZADOS \n\n')
@@ -719,9 +745,10 @@ def facturacion_todos_usuarios():
 	global usuarios
 	total_general = 0
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	nombre_reporte_generado += '.txt'
 	with open(nombre_reporte_generado, mode='w') as f:
-		print('\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
-		print('\t id  Nombre     Colonia    Consumo   Importe   Sobreconsumo   Total')
+		print('\n\n\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
+		print('\t id    Nombre     Colonia         Consumo   Importe   Sobreconsumo   Total\n')
 		f.write('\t\t\tREPORTE DE FACTURACION TODOS LOS USUARIOS\n\n')
 		f.write('\t id  Nombre     Colonia    Consumo   Importe   Sobreconsumo   Total')
 		for usuario in usuarios[1:]:
@@ -746,10 +773,10 @@ def facturacion_todos_usuarios():
 				sobrecon = 0
 				total = importe + sobrecon
 			total_general = total_general + total
-			print('\t {} | {}   |  {}  | {}  |  {}      | {}    |  {}  '.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'],
-				consumo, importe, sobrecon, total))
 			f.write('\n\t {} | {}   |  {}  | {}  |  {}      | {}    |  {}  '.format(usuario['uid'], usuario['nombre'], usuario['nombre de colonia'],
 				consumo, importe, sobrecon, total))
+			print('\t {} '.format(usuario['uid']), '| {}'.format(usuario['nombre']), ' '*(7-len(usuario['nombre'])), '| {}'.format(usuario['nombre de colonia']), ' '*(12-len(usuario['nombre de colonia'])), '|   {}'.format(consumo), ' '*(5-len(str(consumo))), '|   {}'.format(importe), ' '*(4-len(str(importe))), '|   {}'.format(sobrecon), ' '*(9-len(str(sobrecon))), '| {}'.format(total))
+			
 		print('\n Total general: {}'.format(total_general))
 		f.write('\n\n Total general: {}'.format(total_general))
 	input()
@@ -792,6 +819,7 @@ def facturacion_individual():
 			total = importe + sobrecon
 	
 	nombre_reporte_generado = input('\n Nombre para el archivo del reporte: ')
+	nombre_reporte_generado += '.txt'
 	with open(nombre_reporte_generado, mode='w') as f:
 		print('\n\n COMPAÑIA DE AGUA POTABLE ACME\t\t\tFACTURA')
 		print('\n Av. Matamoros 2004\t\t\t\tFolio: {}'.format(folio+1))
